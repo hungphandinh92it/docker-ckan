@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.7
 
 # Internals, you probably don't need to change these
 ENV APP_DIR=/srv/app
@@ -20,7 +20,8 @@ RUN apk add --no-cache tzdata \
         git \
         gettext \
         postgresql-client \
-        python3 \
+        python \
+        apache2-utils \
         libxml2 \
         libxslt \
         musl-dev \
@@ -28,7 +29,7 @@ RUN apk add --no-cache tzdata \
         uwsgi-http \
         uwsgi-corerouter \
         uwsgi-python \
-        py3-gevent \
+        py2-gevent \
         uwsgi-gevent \
         libmagic \
         curl \
@@ -41,8 +42,8 @@ RUN apk add --no-cache tzdata \
         g++ \
         autoconf \
         automake \
-    	libtool \
-        python3-dev \
+	libtool \
+        python-dev \
         libxml2-dev \
         libxslt-dev \
         linux-headers && \
@@ -50,8 +51,8 @@ RUN apk add --no-cache tzdata \
     mkdir -p ${SRC_DIR} && \
     # Install pip, supervisord and uwsgi
     curl -o ${SRC_DIR}/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
-    python3 ${SRC_DIR}/get-pip.py && \
-    pip3 install supervisor && \
+    python ${SRC_DIR}/get-pip.py && \
+    pip install supervisor && \
     mkdir /etc/supervisord.d && \
     #pip wheel --wheel-dir=/wheels uwsgi gevent && \
     rm -rf ${SRC_DIR}/get-pip.py
@@ -59,13 +60,13 @@ RUN apk add --no-cache tzdata \
 COPY common/supervisord.conf /etc
 
 # Install CKAN
-RUN pip3 install -e git+${GIT_URL}@${GIT_BRANCH}#egg=ckan && \
+RUN pip install -e git+${GIT_URL}@${GIT_BRANCH}#egg=ckan && \
     cd ${SRC_DIR}/ckan && \
     cp who.ini ${APP_DIR} && \
-    pip3 install -r requirement-setuptools.txt && \
-    pip3 install --no-binary :all: -r requirements.txt && \
+    pip install -r requirement-setuptools.txt && \
+    pip install --no-binary :all: -r requirements.txt && \
     # Install CKAN envvars to support loading config from environment variables
-    pip3 install -e git+https://github.com/okfn/ckanext-envvars.git#egg=ckanext-envvars && \
+    pip install -e git+https://github.com/okfn/ckanext-envvars.git#egg=ckanext-envvars && \
     # Create and update CKAN config
     ckan generate config ${CKAN_INI} && \
     ckan config-tool ${CKAN_INI} "ckan.plugins = ${CKAN__PLUGINS}" && \
