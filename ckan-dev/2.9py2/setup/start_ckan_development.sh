@@ -27,7 +27,7 @@ do
         if [ -f $i/setup.py ];
         then
             cd $i
-            python3 $i/setup.py develop
+            python $i/setup.py develop
             echo "Found setup.py file in $i"
             cd $APP_DIR
         fi
@@ -59,7 +59,7 @@ ckan config-tool $SRC_DIR/ckan/test-core.ini \
     "ckan.redis.url = $TEST_CKAN_REDIS_URL"
 
 # Run the prerun script to init CKAN and create the default admin user
-sudo -u ckan -EH python3 prerun.py
+sudo -u ckan -EH python prerun.py
 
 # Run any startup scripts provided by images extending this one
 if [[ -d "/docker-entrypoint.d" ]]
@@ -67,7 +67,7 @@ then
     for f in /docker-entrypoint.d/*; do
         case "$f" in
             *.sh)     echo "$0: Running init file $f"; . "$f" ;;
-            *.py)     echo "$0: Running init file $f"; python3 "$f"; echo ;;
+            *.py)     echo "$0: Running init file $f"; python "$f"; echo ;;
             *)        echo "$0: Ignoring $f (not an sh or py file)" ;;
         esac
         echo
