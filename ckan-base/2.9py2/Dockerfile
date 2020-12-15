@@ -33,6 +33,7 @@ RUN apk add --no-cache tzdata \
         uwsgi-gevent \
         libmagic \
         curl \
+        nano \
         sudo && \
     # Packages to build CKAN requirements and plugins
     apk add --no-cache --virtual .build-deps \
@@ -59,12 +60,15 @@ RUN apk add --no-cache tzdata \
 
 COPY common/supervisord.conf /etc
 
+RUN pip install setuptools==44.1.0
+RUN pip install --upgrade pip
+
 # Install CKAN
 RUN pip install -e git+${GIT_URL}@${GIT_BRANCH}#egg=ckan && \
     cd ${SRC_DIR}/ckan && \
     cp who.ini ${APP_DIR} && \
     pip install -r requirement-setuptools.txt && \
-    pip install --no-binary :all: -r requirements.txt && \
+    pip install --no-binary :all: -r requirements-py2.txt && \
     # Install CKAN envvars to support loading config from environment variables
     pip install -e git+https://github.com/okfn/ckanext-envvars.git#egg=ckanext-envvars && \
     # Create and update CKAN config
@@ -80,9 +84,9 @@ RUN addgroup -g 92 -S ckan && \
 RUN mkdir -p $CKAN_STORAGE_PATH && \
     chown -R ckan:ckan $CKAN_STORAGE_PATH
 
-COPY 2.9/setup/prerun.py ${APP_DIR}
-COPY 2.9/setup/supervisor.worker.conf /etc/supervisord.d/worker.conf
-COPY 2.9/setup/start_ckan.sh ${APP_DIR}
+COPY 2.9py2/setup/prerun.py ${APP_DIR}
+COPY 2.9py2/setup/supervisor.worker.conf /etc/supervisord.d/worker.conf
+COPY 2.9py2/setup/start_ckan.sh ${APP_DIR}
 ADD https://raw.githubusercontent.com/ckan/ckan/${GIT_BRANCH}/wsgi.py ${APP_DIR}
 
 # Create entrypoint directory for children image scripts
